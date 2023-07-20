@@ -8,15 +8,21 @@ export default function AddTable() {
   }
   const [tableName, setTableName] = useState('');
   const [columns, setColumns] = useState<Column[]>([{ name: '', dataType: '' }]);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    
+    event.preventDefault();
+    if (tableName === '' || columns.some((column) => column.name === '' || column.dataType === '')) {
+      setErrorMessage('Please fill out all fields.');
+      return;
+    }
     console.log(tableName);
     columns.forEach((column) => {
       console.log(column.name);
       console.log(column.dataType);
     });
 
-    event.preventDefault();
     // TODO: Handle form submission
   };
 
@@ -29,7 +35,7 @@ export default function AddTable() {
     setColumns(newColumns);
   };
 
-  const handleDataTypeChange = (event: React.ChangeEvent<HTMLInputElement>, index:number) => {
+  const handleDataTypeChange = (event: React.ChangeEvent<HTMLSelectElement>, index:number) => {
     const newColumns = [...columns];
     newColumns[index].dataType = event.target.value;
     setColumns(newColumns);
@@ -48,6 +54,7 @@ export default function AddTable() {
     <div>
       <h1>Add a Table</h1>
       <form onSubmit={handleSubmit}>
+      {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
         <label>
           Table Name:
           <input type="text" value={tableName} onChange={handleTableNameChange} />
@@ -68,11 +75,14 @@ export default function AddTable() {
                 </td>
                 <td>
                 <select value={column.dataType} onChange={(event) => handleDataTypeChange(event, index)}>
-                    <option value="INT">INT</option>
-                    <option value="VARCHAR">VARCHAR</option>
-                    <option value="TEXT">TEXT</option>
-                    <option value="DATE">DATE</option>
-                    <option value="DATETIME">DATETIME</option>
+                    <option value=""></option>
+                    <option value="DOUBLE">Decimal</option>
+                    <option value="INT">Integer</option>
+                    <option value="VARCHAR">String</option>
+                    <option value="TEXT">Text</option>
+                    <option value="DATE">Date</option>
+                    <option value="DATETIME">Date/Time</option>
+                    <option value="BOOLEAN">True/False</option>
                   </select>
                 </td>
                 <td>
