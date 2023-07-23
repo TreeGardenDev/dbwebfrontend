@@ -3,25 +3,81 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --primary-color: #007bff;
+  --secondary-color: #6c757d;
+  --background-color: #f8f9fa;
+  --text-color: #212529;
+}
+label{
+  color: #ffffff;
+}
+h1, h2, h3, h4, h5, h6 {
+  color: #ffffff;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+th{
+  color: #ffffff;
+  gap: 10px;
+}
+td{
+  color: #cccccc;
+  gap: 10px;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  background-color:rgb(49, 50, 51);
+  font-family: 'Open Sans', sans-serif;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+button {
+  background-color: #007bff;
+  background: #007bff;
+  color: burlywood;
+  border: white;
+  border-spacing: 10px;
+  border-style: solid;
+
+}
+
+button.secondary {
+background-color: #007bff;
+
+}
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.card {
+  background-color: #007bff;
+  border-radius: 0.25rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  color: #ffffff;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+@media (min-width: 768px) {
+  .container {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .card {
+    flex: 1 1 300px;
+    margin-right: 1rem;
+  }
+
+  .card:last-child {
+    margin-right: 0;
+  }
 }

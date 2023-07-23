@@ -1,5 +1,7 @@
 'use client'
 import { useState } from 'react';
+import '@component/app/globals.css';
+import { count } from 'console';
 
 export default function AddTable() {
   interface Column {
@@ -22,6 +24,27 @@ export default function AddTable() {
       console.log(column.name);
       console.log(column.dataType);
     });
+    
+    let countArray=[];
+    for (let i=0; i<columns.length; i++){
+
+      let string="col"+(i+1).toString();
+      console.log(string);
+      countArray.push(string);
+    }
+    const columnsArray = columns.map((column) => column.name);
+    const typesArray = columns.map((column) => column.dataType);
+
+    const jsonObject = {
+      columns: [Object.fromEntries(countArray.map((column,index) => [column, columnsArray[index]]))],
+      types: [Object.fromEntries(countArray.map((column, index) => [column, typesArray[index]]))],
+
+    }
+
+
+    console.log(JSON.stringify(jsonObject));
+    //console.log(jsonObject);
+
 
     // TODO: Handle form submission
   };
