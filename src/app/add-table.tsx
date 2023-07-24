@@ -12,7 +12,7 @@ export default function AddTable() {
   const [columns, setColumns] = useState<Column[]>([{ name: '', dataType: '' }]);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     
     event.preventDefault();
     if (tableName === '' || columns.some((column) => column.name === '' || column.dataType === '')) {
@@ -20,10 +20,6 @@ export default function AddTable() {
       return;
     }
     console.log(tableName);
-    columns.forEach((column) => {
-      console.log(column.name);
-      console.log(column.dataType);
-    });
     
     let countArray=[];
     for (let i=0; i<columns.length; i++){
@@ -40,14 +36,35 @@ export default function AddTable() {
       types: [Object.fromEntries(countArray.map((column, index) => [column, typesArray[index]]))],
 
     }
+    let database="testfrontend";
+    let json = JSON.stringify(jsonObject);
+    console.log(json);
+    let gpsval="false";
+    //let storedApiKey = localStorage.getItem('apiKey');
+    let storedApiKey="CEF7698E34DEBFB3BA467410EF57DC54932A828BDE93729730DC9FB396218631";
 
 
-    console.log(JSON.stringify(jsonObject));
-    //console.log(jsonObject);
+    const url = `http://localhost:8080/createtable/${database}&table=${tableName}&gps=${gpsval}&apikey=${storedApiKey}`;
+    console.log(url); 
+  // Send the HTTP request with the JSON body
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: json,
+    });
 
-
-    // TODO: Handle form submission
-  };
+    if (response.ok) {
+      console.log('Table created successfully!');
+    } else {
+      console.error('Failed to create table:', response.statusText);
+    }
+  } catch (error) {
+    console.error('Failed to create table:', error);
+  }
+};
 
   const handleTableNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setTableName(event.target.value);
@@ -101,7 +118,7 @@ export default function AddTable() {
                     <option value=""></option>
                     <option value="DOUBLE">Decimal</option>
                     <option value="INT">Integer</option>
-                    <option value="VARCHAR">String</option>
+                    <option value="VARCHAR(255)">String</option>
                     <option value="TEXT">Text</option>
                     <option value="DATE">Date</option>
                     <option value="DATETIME">Date/Time</option>
