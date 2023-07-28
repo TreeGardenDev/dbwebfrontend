@@ -8,6 +8,7 @@ export default function AddTable() {
     name: string;
     dataType: string;
   }
+  const [useGPS, setUseGPS] = useState(false);
   const [tableName, setTableName] = useState('');
   const [columns, setColumns] = useState<Column[]>([{ name: '', dataType: '' }]);
   const [errorMessage, setErrorMessage] = useState('');
@@ -36,12 +37,16 @@ export default function AddTable() {
       types: [Object.fromEntries(countArray.map((column, index) => [column, typesArray[index]]))],
 
     }
-    let database="testfrontend";
+    //let database="testfrontend";
+    let database=localStorage.getItem('database');
     let json = JSON.stringify(jsonObject);
     console.log(json);
-    let gpsval="false";
-    //let storedApiKey = localStorage.getItem('apiKey');
-    let storedApiKey="CEF7698E34DEBFB3BA467410EF57DC54932A828BDE93729730DC9FB396218631";
+    //let gpsval="false";
+    let gpsval=useGPS;
+    //console.log(gpsval);
+    console.log(localStorage.getItem('storedapiKey'));
+    let storedApiKey = localStorage.getItem('storedapikey');
+    //let storedApiKey="CEF7698E34DEBFB3BA467410EF57DC54932A828BDE93729730DC9FB396218631";
 
 
     const url = `http://localhost:8080/createtable/${database}&table=${tableName}&gps=${gpsval}&apikey=${storedApiKey}`;
@@ -88,6 +93,11 @@ export default function AddTable() {
     newColumns.splice(index, 1);
     setColumns(newColumns);
   };
+  const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setUseGPS(event.target.checked);
+
+  };
+    
 
 
   return (
@@ -132,6 +142,8 @@ export default function AddTable() {
             ))}
           </tbody>
         </table>
+        <input type="checkbox" onChange={handleCheckboxChange} /> Use GPS
+
         <button type="button" onClick={handleAddRow}>Add Row</button>
         <button type="submit">Create Table</button>
       </form>
