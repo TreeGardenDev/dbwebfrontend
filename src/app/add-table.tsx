@@ -43,9 +43,10 @@ export default function AddTable() {
     console.log(json);
     //let gpsval="false";
     let gpsval=useGPS;
-    console.log(gpsval);
-    //let storedApiKey = localStorage.getItem('apiKey');
-    let storedApiKey="CEF7698E34DEBFB3BA467410EF57DC54932A828BDE93729730DC9FB396218631";
+    //console.log(gpsval);
+    console.log(localStorage.getItem('storedapiKey'));
+    let storedApiKey = localStorage.getItem('storedapikey');
+    //let storedApiKey="CEF7698E34DEBFB3BA467410EF57DC54932A828BDE93729730DC9FB396218631";
 
 
     const url = `http://localhost:8080/createtable/${database}&table=${tableName}&gps=${gpsval}&apikey=${storedApiKey}`;

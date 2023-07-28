@@ -30,8 +30,6 @@
   }, []);
   
 
-  
-
   const handleDatabaseNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setDatabase(event.target.value);
   };
