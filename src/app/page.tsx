@@ -6,6 +6,8 @@
 
  export default function Home() {
   const [database, setDatabase] = useState('');
+  const [connectionKey, setConnectionKey] = useState('');
+  const [storedapikey, setStoredApiKey] = useState('');
 
   useEffect(() => {
     const storedDatabase = localStorage.getItem('database');
@@ -14,15 +16,49 @@
     } else {
       // Show the database name input screen
     }
+    const storedconnectionKey = localStorage.getItem('connectionKey');
+    if (storedconnectionKey) {
+      setConnectionKey(connectionKey);
+    } else {
+
+    }
+    const storedApiKey = localStorage.getItem('storedapikey');
+    if (storedApiKey) {
+      setStoredApiKey(storedApiKey);
+    } else {
+    }
   }, []);
+  
+
+  
 
   const handleDatabaseNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setDatabase(event.target.value);
   };
+  const handleConnectionKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setConnectionKey(event.target.value);
+  };
 
-  const handleDatabaseNameSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleDatabaseNameSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     localStorage.setItem('database', database);
+    localStorage.setItem('connectionKey', connectionKey);
+
+    let url=`http://localhost:8080/getkey/${database}&apikey=${connectionKey}`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }  
+    });
+    let json = await response.json();
+    localStorage.setItem('storedapikey', json.APIKey);
+    //console.log(localStorage.getItem('storedapikey'));
+
+    //let apikey=await fetch(url);
+
+    
     // Hide the database name input screen
   };
    return (
@@ -34,6 +70,10 @@
               <label>
                 Database Name:
                 <input type="text" value={database} onChange={handleDatabaseNameChange} />
+              </label>
+              <label>
+                Connection Key:
+                <input type="text" value={connectionKey} onChange={handleConnectionKeyChange} />
               </label>
               <button type="submit">Save</button>
             </form>
