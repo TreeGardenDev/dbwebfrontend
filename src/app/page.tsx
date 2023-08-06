@@ -8,6 +8,7 @@
   const [database, setDatabase] = useState('');
   const [connectionKey, setConnectionKey] = useState('');
   const [storedapikey, setStoredApiKey] = useState('');
+  const [dbschema, setdbschema] = useState('');
 
   useEffect(() => {
     const storedDatabase = localStorage.getItem('database');
@@ -27,6 +28,11 @@
       setStoredApiKey(storedApiKey);
     } else {
     }
+    const storedDBSchema = localStorage.getItem('dbschema');
+    if (storedDBSchema) {
+        setdbschema(storedDBSchema);
+    } else {
+    }
   }, []);
   
 
@@ -36,6 +42,21 @@
   const handleConnectionKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setConnectionKey(event.target.value);
   };
+    const handleDBSchemaDownload = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    let connectionKey= localStorage.getItem('connectionKey');
+    let url=`http://localhost:8080/querydatabase/${database}&expand=true&apikey=${connectionKey}`;
+    const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'text/json',
+            }
+        });
+    let json = await response.json();
+    localStorage.setItem('dbschema', json);
+    console.log(json);
+    return json;
+    };
 
   const handleDatabaseNameSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -52,13 +73,31 @@
     });
     let json = await response.json();
     localStorage.setItem('storedapikey', json.APIKey);
-    //console.log(localStorage.getItem('storedapikey'));
 
-    //let apikey=await fetch(url);
+    //make get request with apikey to get database schema
+    //
+    //let dbschema = await handleDBSchemaDownload(event);
+
+
+
+    const dbshema = await handleDBSchemaDownload(event);
+    console.log(dbshema);
+
+    //let apikey = localStorage.getItem('storedapikey');
+    //let urlgetschena=`localhost:8080/querydatabase/${database}&expand=true&apikey=${apikey}`;
+    //const response2 = await fetch(urlgetschena, {
+    //    method: 'GET',
+    //    headers: {
+    //        'Content-Type': 'application/json',
+    //        }
+    //    });
+    //let dbschema= await response2.json();
+    //console.log(dbschema);
+    //localStorage.setItem('dbschema', dbschema);
 
     
-    // Hide the database name input screen
   };
+   
    return (
      <main className="flex min-h-screen flex-col items-center justify-between p-24">
        <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
