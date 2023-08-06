@@ -1,13 +1,15 @@
 'use client'
 import { useState } from 'react';
 import '@component/app/globals.css';
-import { count } from 'console';
+//import { count } from 'console';
+import React from "react";
 
 export default function AddTable() {
   interface Column {
     name: string;
     dataType: string;
   }
+
   const [useGPS, setUseGPS] = useState(false);
   const [tableName, setTableName] = useState('');
   const [columns, setColumns] = useState<Column[]>([{ name: '', dataType: '' }]);

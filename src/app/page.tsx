@@ -3,11 +3,23 @@
  import Image from 'next/image'
  import Link from 'next/link'
  import '@component/app/globals.css';
+import { forEachChild } from 'typescript';
 
  export default function Home() {
   const [database, setDatabase] = useState('');
   const [connectionKey, setConnectionKey] = useState('');
   const [storedapikey, setStoredApiKey] = useState('');
+  const [dbschema, setdbschema] = useState('');
+    interface ParsedSchema {
+      [key: string]: {
+        table_name: string;
+        columns: Array<string>;
+        constraint_column:string;
+        constraints:string;
+        table_schema:string;
+        types:Array<string>;
+      };
+    }
 
   useEffect(() => {
     const storedDatabase = localStorage.getItem('database');
@@ -27,8 +39,26 @@
       setStoredApiKey(storedApiKey);
     } else {
     }
+    const storedDBSchema = localStorage.getItem('dbschema');
+    if (storedDBSchema) {
+        setdbschema(storedDBSchema);
+    } else {
+    }
   }, []);
+  const BuildTable=(tableName:string, fulltable:Object)=>{
+        //build table from Interfa  
+        //set loacl storage in table subfolder
+        //
+        localStorage.setItem(`table/${tableName}`, JSON.stringify(fulltable));
+        console.log(fulltable);
+    }
   
+  const parseDBSchema = (dbschema: string) => {
+    const dbschemaString = localStorage.getItem('dbschema');
+    dbschemaString ? JSON.parse(dbschemaString) : null;
+
+    return dbschemaString;
+    };
 
   const handleDatabaseNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setDatabase(event.target.value);
@@ -36,6 +66,21 @@
   const handleConnectionKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setConnectionKey(event.target.value);
   };
+    const handleDBSchemaDownload = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    let connectionKey= localStorage.getItem('connectionKey');
+    let url=`http://localhost:8080/querydatabase/${database}&expand=true&apikey=${connectionKey}`;
+    const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'text/json',
+            }
+        });
+    let json = await response.json();
+    localStorage.setItem('dbschema', JSON.stringify(json));
+    console.log(json);
+    return json;
+    };
 
   const handleDatabaseNameSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -52,13 +97,33 @@
     });
     let json = await response.json();
     localStorage.setItem('storedapikey', json.APIKey);
-    //console.log(localStorage.getItem('storedapikey'));
 
-    //let apikey=await fetch(url);
+    const dbshema = await handleDBSchemaDownload(event);
+    console.log(dbshema);
+    const dbschemaString = localStorage.getItem('dbschema');
 
+    const parsed: ParsedSchema | null = dbschemaString ? JSON.parse(dbschemaString) : null;
+
+    if (parsed) {
+    Object.keys(parsed).forEach((table) => {
+      const tabledet = parsed[table];
+
+      const tablename=tabledet.table_name;
+      console.log(`Table Name: ${tablename}`);
+      BuildTable(tablename, tabledet);
+   //     Object.values(tabledet.columns).forEach((column) => {
+   //         console.log(`Column Name: ${column}`);
+   // });
+   //     Object.values(tabledet.types).forEach((type) => {
+   //         console.log(`Column Type: ${type}`);
+   //         
+   //         });
     
-    // Hide the database name input screen
+    });
   };
+  }
+
+   
    return (
      <main className="flex min-h-screen flex-col items-center justify-between p-24">
        <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
