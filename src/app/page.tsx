@@ -3,6 +3,7 @@
  import Image from 'next/image'
  import Link from 'next/link'
  import '@component/app/globals.css';
+import { forEachChild } from 'typescript';
 
  export default function Home() {
   const [database, setDatabase] = useState('');
@@ -35,6 +36,27 @@
     }
   }, []);
   
+  const parseDBSchema = (dbschema: string) => {
+    const dbschemaString = localStorage.getItem('dbschema');
+    dbschemaString ? JSON.parse(dbschemaString) : null;
+
+    return dbschemaString;
+    };
+interface ParsedSchema {
+  [key: string]: {
+    table_name: string;
+    columns: {
+      [key: string]: {
+        name: string;
+        type: string;
+        nullable: boolean;
+        primaryKey: boolean;
+        foreignKey: boolean;
+        references: string;
+      };
+    };
+  };
+}
 
   const handleDatabaseNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setDatabase(event.target.value);
@@ -53,7 +75,7 @@
             }
         });
     let json = await response.json();
-    localStorage.setItem('dbschema', json);
+    localStorage.setItem('dbschema', JSON.stringify(json));
     console.log(json);
     return json;
     };
@@ -82,21 +104,27 @@
 
     const dbshema = await handleDBSchemaDownload(event);
     console.log(dbshema);
+    const dbschemaString = localStorage.getItem('dbschema');
 
-    //let apikey = localStorage.getItem('storedapikey');
-    //let urlgetschena=`localhost:8080/querydatabase/${database}&expand=true&apikey=${apikey}`;
-    //const response2 = await fetch(urlgetschena, {
-    //    method: 'GET',
-    //    headers: {
-    //        'Content-Type': 'application/json',
-    //        }
-    //    });
-    //let dbschema= await response2.json();
-    //console.log(dbschema);
-    //localStorage.setItem('dbschema', dbschema);
+    const parsed: ParsedSchema | null = dbschemaString ? JSON.parse(dbschemaString) : null;
+    //const parsed:ParsedSchema=parseDBSchema(dbshema);
+
+    //loop through the tables and create a table for each one
+
+    //loop through the columns and create a column for each one
+    if (parsed) {
+    Object.keys(parsed).forEach((table) => {
+      const tabledet = parsed[table];
+
+      const tablename=tabledet.table_name;
+      console.log(`Table Name: ${tablename}`);
 
     
+      // Loop through the columns
+    });
   };
+  }
+
    
    return (
      <main className="flex min-h-screen flex-col items-center justify-between p-24">
