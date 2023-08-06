@@ -10,6 +10,16 @@ import { forEachChild } from 'typescript';
   const [connectionKey, setConnectionKey] = useState('');
   const [storedapikey, setStoredApiKey] = useState('');
   const [dbschema, setdbschema] = useState('');
+    interface ParsedSchema {
+      [key: string]: {
+        table_name: string;
+        columns: Array<string>;
+        constraint_column:string;
+        constraints:string;
+        table_schema:string;
+        types:Array<string>;
+      };
+    }
 
   useEffect(() => {
     const storedDatabase = localStorage.getItem('database');
@@ -35,6 +45,13 @@ import { forEachChild } from 'typescript';
     } else {
     }
   }, []);
+  const BuildTable=(tableName:string, fulltable:Object)=>{
+        //build table from Interfa  
+        localStorage.setItem(`${tableName}`, JSON.stringify(fulltable));
+        console.log(fulltable);
+        //
+    }
+
   
   const parseDBSchema = (dbschema: string) => {
     const dbschemaString = localStorage.getItem('dbschema');
@@ -42,21 +59,6 @@ import { forEachChild } from 'typescript';
 
     return dbschemaString;
     };
-interface ParsedSchema {
-  [key: string]: {
-    table_name: string;
-    columns: {
-      [key: string]: {
-        name: string;
-        type: string;
-        nullable: boolean;
-        primaryKey: boolean;
-        foreignKey: boolean;
-        references: string;
-      };
-    };
-  };
-}
 
   const handleDatabaseNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setDatabase(event.target.value);
@@ -96,31 +98,27 @@ interface ParsedSchema {
     let json = await response.json();
     localStorage.setItem('storedapikey', json.APIKey);
 
-    //make get request with apikey to get database schema
-    //
-    //let dbschema = await handleDBSchemaDownload(event);
-
-
-
     const dbshema = await handleDBSchemaDownload(event);
     console.log(dbshema);
     const dbschemaString = localStorage.getItem('dbschema');
 
     const parsed: ParsedSchema | null = dbschemaString ? JSON.parse(dbschemaString) : null;
-    //const parsed:ParsedSchema=parseDBSchema(dbshema);
 
-    //loop through the tables and create a table for each one
-
-    //loop through the columns and create a column for each one
     if (parsed) {
     Object.keys(parsed).forEach((table) => {
       const tabledet = parsed[table];
 
       const tablename=tabledet.table_name;
       console.log(`Table Name: ${tablename}`);
-
+      BuildTable(tablename, tabledet);
+   //     Object.values(tabledet.columns).forEach((column) => {
+   //         console.log(`Column Name: ${column}`);
+   // });
+   //     Object.values(tabledet.types).forEach((type) => {
+   //         console.log(`Column Type: ${type}`);
+   //         
+   //         });
     
-      // Loop through the columns
     });
   };
   }
