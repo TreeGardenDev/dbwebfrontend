@@ -21,6 +21,13 @@ import { forEachChild } from 'typescript';
         types:Array<string>;
       };
     }
+    //interface Table_Cols {
+    //    [key: string]: {
+    //        column_name: string;
+    //        data_type: string;
+    //        table_name: string;
+    //        }
+    //    }
 
   useEffect(() => {
     const storedDatabase = localStorage.getItem('database');
