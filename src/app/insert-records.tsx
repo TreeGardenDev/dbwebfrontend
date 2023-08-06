@@ -48,9 +48,9 @@ const fetchTableSchema = async () => {
     console.log(records);
 
     const tableSchema = {
-      columns: columns.map((name: string, index: number) => ({
+      columns: columns.slice(1).map((name: string, index: number) => ({
         name,
-        type: types[index],
+        type: types[index+1],
       })),
     };
 
@@ -92,7 +92,7 @@ const fetchTableSchema = async () => {
     let apiKey = localStorage.getItem('storedapikey');
     let database = localStorage.getItem('database');
     try {
-      const response = await fetch(`http://localhost:8080/insertrecords/${database}&table=${table}&apikey=${apiKey}`, {
+      const response = await fetch(`http://localhost:8080/insert/${database}&table=${table}&apikey=${apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -131,7 +131,7 @@ const fetchTableSchema = async () => {
           <table>
             <thead>
               <tr>
-                {tableSchema.columns.map((column) => (
+                {tableSchema.columns.map((column:any) => (
                   <th key={column.name}>{column.name}</th>
                 ))}
               </tr>
@@ -141,7 +141,7 @@ const fetchTableSchema = async () => {
               {
               records.map((record, index) => (
                 <tr key={index}>
-                  {tableSchema.columns.map((column) => (
+                  {tableSchema.columns.map((column:any) => (
                     <td key={column.name}>
                       <input
                         type="text"
