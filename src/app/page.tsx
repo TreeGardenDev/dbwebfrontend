@@ -10,6 +10,7 @@ import { forEachChild } from 'typescript';
   const [connectionKey, setConnectionKey] = useState('');
   const [storedapikey, setStoredApiKey] = useState('');
   const [dbschema, setdbschema] = useState('');
+  const [OnlineEnabled, setOnlineEnabled] = useState(true);
     interface ParsedSchema {
       [key: string]: {
         table_name: string;
@@ -20,6 +21,13 @@ import { forEachChild } from 'typescript';
         types:Array<string>;
       };
     }
+    //interface Table_Cols {
+    //    [key: string]: {
+    //        column_name: string;
+    //        data_type: string;
+    //        table_name: string;
+    //        }
+    //    }
 
   useEffect(() => {
     const storedDatabase = localStorage.getItem('database');
@@ -59,12 +67,36 @@ import { forEachChild } from 'typescript';
 
     return dbschemaString;
     };
-
+    const onClickDownloadRecords = async (event: React.MouseEventHandler<HTMLButtonElement>) => {
+        //event.preventDefault();
+        let connectionKey= localStorage.getItem('storedapikey');
+        const tables:any = localStorage.getItem('tables');
+        if (tables) {
+            const tableArray = JSON.parse(tables);
+            tableArray.forEach(async (table:any) => {
+                let url=`http://localhost:8080/query/${database}&table=${table}&select=*&where=1=1&apikey=${connectionKey}`
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                let json = await response.json();
+                localStorage.setItem(`${table}_records`, JSON.stringify(json));
+                console.log(json);
+            });
+        //let current_tables=
+        
+        }
+        }
   const handleDatabaseNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setDatabase(event.target.value);
   };
   const handleConnectionKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setConnectionKey(event.target.value);
+  };
+  const handleOnlineStatusChange= (event: React.ChangeEvent<HTMLInputElement>) => {
+    setOnlineEnabled(event.target.checked);
   };
     const handleDBSchemaDownload = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -86,6 +118,7 @@ import { forEachChild } from 'typescript';
     event.preventDefault();
     localStorage.setItem('database', database);
     localStorage.setItem('connectionKey', connectionKey);
+    localStorage.setItem('online', OnlineEnabled.toString());
 
     let url=`http://localhost:8080/getkey/${database}&apikey=${connectionKey}`;
 
@@ -105,21 +138,19 @@ import { forEachChild } from 'typescript';
     const parsed: ParsedSchema | null = dbschemaString ? JSON.parse(dbschemaString) : null;
 
     if (parsed) {
+    let tablenameArray:Array<string>=[];
     Object.keys(parsed).forEach((table) => {
       const tabledet = parsed[table];
 
       const tablename=tabledet.table_name;
       console.log(`Table Name: ${tablename}`);
       BuildTable(tablename, tabledet);
-   //     Object.values(tabledet.columns).forEach((column) => {
-   //         console.log(`Column Name: ${column}`);
-   // });
-   //     Object.values(tabledet.types).forEach((type) => {
-   //         console.log(`Column Type: ${type}`);
-   //         
-   //         });
-    
+      tablenameArray.push(tablename);
+      localStorage.setItem(`${tablename}_columns`, JSON.stringify(tabledet.columns));
+      localStorage.setItem(`${tablename}_types`, JSON.stringify(tabledet.types));
+
     });
+    localStorage.setItem('tables', JSON.stringify(tablenameArray));
   };
   }
 
@@ -138,6 +169,10 @@ import { forEachChild } from 'typescript';
                 Connection Key:
                 <input type="text" value={connectionKey} onChange={handleConnectionKeyChange} />
               </label>
+              <label>
+                Online Enabled
+                <input type="checkbox" onChange={handleOnlineStatusChange} defaultChecked={true} />
+                </label>
               <button type="submit">Save</button>
             </form>
             <Link href="/add-table" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
@@ -149,6 +184,9 @@ import { forEachChild } from 'typescript';
              <Link href="/view-edit-data" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                View and Edit Current Inspection Data
              </Link>
+
+
+             <button onClick={onClickDownloadRecords}>Download Records Already Entered</button>
            </div>
          </div>
        </div>

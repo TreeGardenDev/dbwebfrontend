@@ -1,52 +1,71 @@
-import { useState, useEffect } from 'react';
-
-interface Column {
-  name: string;
-  dataType: string;
-}
-
-interface TableSchema {
-  columns: Column[];
-}
-
+ 'use client'
+ import { useState, useEffect } from 'react';
+ import Image from 'next/image'
+ import Link from 'next/link'
+ import '@component/app/globals.css';
 export default function InsertRecords() {
-  const [database, setDatabase] = useState('');
   const [table, setTable] = useState('');
-  const [apiKey, setApiKey] = useState('');
   const [tableSchema, setTableSchema] = useState<TableSchema | null>(null);
   const [records, setRecords] = useState<any[]>([]);
+  const [tables, setTables] = useState<string[]>([]);
 
   useEffect(() => {
-    // Fetch the table schema from the server
-    const fetchTableSchema = async () => {
-      try {
-        const response = await fetch(`http://localhost:8080/querytableschema/${database}&table=${table}&apikey=${apiKey}`);
-        if (response.ok) {
-          const tableSchema = await response.json();
-          setTableSchema(tableSchema);
-        } else {
-          console.error('Failed to fetch table schema:', response.statusText);
-        }
-      } catch (error) {
-        console.error('Failed to fetch table schema:', error);
+    // Fetch the tables from local storage
+    const fetchTables = async () => {
+      const tablesString = localStorage.getItem('tables');
+
+      if (tablesString) {
+        const tables = JSON.parse(tablesString);
+        setTables(tables);
       }
     };
 
-    if (database && table && apiKey) {
+    fetchTables();
+  }, []);
+
+  useEffect(() => {
+    // Fetch the table schema from local storage
+const fetchTableSchema = async () => {
+  const columnsString = localStorage.getItem(`${table}_columns`);
+  const typesString = localStorage.getItem(`${table}_types`);
+  const recordsString = localStorage.getItem(`${table}_records`);
+  console.log(recordsString);
+  const database = localStorage.getItem('database');
+  const apiKey = localStorage.getItem('storedapikey');
+
+  if (columnsString && typesString && recordsString) {
+    const columns = JSON.parse(columnsString);
+    const types = JSON.parse(typesString);
+    let recordarray = [];
+    let records = JSON.parse(recordsString);
+    for (let i = 0; i < records.length; i++) {
+      recordarray.push(records[i]);
+    }
+
+    //if (!Array.isArray(records)) {
+    //  records = [];
+    //}
+    console.log(records);
+
+    const tableSchema = {
+      columns: columns.slice(1).map((name: string, index: number) => ({
+        name,
+        type: types[index+1],
+      })),
+    };
+
+    setTableSchema(tableSchema);
+    setRecords(recordarray);
+  }
+};
+    if (table) {
       fetchTableSchema();
     }
-  }, [database, table, apiKey]);
+  }, [table]);
 
-  const handleDatabaseChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setDatabase(event.target.value);
-  };
 
-  const handleTableChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleTableChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setTable(event.target.value);
-  };
-
-  const handleApiKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setApiKey(event.target.value);
   };
 
   const handleAddRecord = () => {
@@ -62,32 +81,26 @@ export default function InsertRecords() {
       prevRecords.map((record, i) => {
         if (i === index) {
           return { ...record, [column]: value };
+        } else {
+          return record;
         }
-        return record;
       })
     );
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    // Create the JSON object
-    const jsonObject = {
-      records,
-    };
-
-    // Send the HTTP request with the JSON body
+  const handleSubmit = async () => {
+    let apiKey = localStorage.getItem('storedapikey');
+    let database = localStorage.getItem('database');
     try {
       const response = await fetch(`http://localhost:8080/insert/${database}&table=${table}&apikey=${apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(jsonObject),
+        body: JSON.stringify(records),
       });
-
       if (response.ok) {
-        console.log('Records inserted successfully!');
+        console.log('Records inserted successfully');
       } else {
         console.error('Failed to insert records:', response.statusText);
       }
@@ -96,47 +109,64 @@ export default function InsertRecords() {
     }
   };
 
-  if (!tableSchema) {
-    return <div>Loading...</div>;
-  }
-
   return (
     <div>
       <h1>Insert Records</h1>
-      <form onSubmit={handleSubmit}>
-        <label>
-          Database:
-          <input type="text" value={database} onChange={handleDatabaseChange} />
-        </label>
+      <form>
+        <br />
         <label>
           Table:
-          <input type="text" value={table} onChange={handleTableChange} />
-        </label>
-        <label>
-          API Key:
-          <input type="text" value={apiKey} onChange={handleApiKeyChange} />
-        </label>
-        {records.map((record, index) => (
-          <div key={index}>
-            {tableSchema.columns.map((column) => (
-              <label key={column.name}>
-                {column.name} ({column.dataType}):
-                <input
-                  type="text"
-                  value={record[column.name] || ''}
-                  onChange={(event) => handleRecordChange(index, column.name, event.target.value)}
-                />
-              </label>
+          <select value={table} onChange={handleTableChange}>
+            <option value="">Select a table</option>
+            {tables.map((table) => (
+              <option key={table} value={table}>
+                {table}
+              </option>
             ))}
-            <button type="button" onClick={() => handleDeleteRecord(index)}>
-              Delete
-            </button>
-          </div>
-        ))}
+          </select>
+        </label>
+        <br />
+        <br />
+        {tableSchema && (
+          <table>
+            <thead>
+              <tr>
+                {tableSchema.columns.map((column:any) => (
+                  <th key={column.name}>{column.name}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+
+              {
+              records.map((record, index) => (
+                <tr key={index}>
+                  {tableSchema.columns.map((column:any) => (
+                    <td key={column.name}>
+                      <input
+                        type="text"
+                        value={record[column.name] || ''}
+                        onChange={(event) => handleRecordChange(index, column.name, event.target.value)}
+                      />
+                    </td>
+                  ))}
+                  <td>
+                    <button type="button" onClick={() => handleDeleteRecord(index)}>
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        <br />
         <button type="button" onClick={handleAddRecord}>
           Add Record
         </button>
-        <button type="submit">Insert Records</button>
+        <button type="button" onClick={handleSubmit}>
+          Submit
+        </button>
       </form>
     </div>
   );
