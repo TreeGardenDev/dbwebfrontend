@@ -47,11 +47,11 @@ import { forEachChild } from 'typescript';
   }, []);
   const BuildTable=(tableName:string, fulltable:Object)=>{
         //build table from Interfa  
-        localStorage.setItem(`${tableName}`, JSON.stringify(fulltable));
-        console.log(fulltable);
+        //set loacl storage in table subfolder
         //
+        localStorage.setItem(`table/${tableName}`, JSON.stringify(fulltable));
+        console.log(fulltable);
     }
-
   
   const parseDBSchema = (dbschema: string) => {
     const dbschemaString = localStorage.getItem('dbschema');
