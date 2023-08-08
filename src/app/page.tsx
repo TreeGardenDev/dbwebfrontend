@@ -4,15 +4,14 @@
  import Image from 'next/image'
  import Link from 'next/link'
  import '@component/app/globals.css';
-import { forEachChild } from 'typescript';
 
  export default function Home() {
   const [database, setDatabase] = useState('');
   const [connectionKey, setConnectionKey] = useState('');
-  const [storedapikey, setStoredApiKey] = useState('');
-  const [dbschema, setdbschema] = useState('');
-  const [initialLogin, setInitialLogin] = useState(false);
-  const [OnlineEnabled, setOnlineEnabled] = useState(true);
+  //const [storedapikey, setStoredApiKey] = useState('');
+  //const [dbschema, setdbschema] = useState('');
+  //const [initialLogin, setInitialLogin] = useState(false);
+  //const [OnlineEnabled, setOnlineEnabled] = useState(true);
     interface ParsedSchema {
       [key: string]: {
         table_name: string;
@@ -44,18 +43,18 @@ import { forEachChild } from 'typescript';
 
     }
     const storedApiKey = localStorage.getItem('storedapikey');
-    if (storedApiKey) {
-      setStoredApiKey(storedApiKey);
-    } else {
-    }
+    //if (storedApiKey) {
+    //  setStoredApiKey(storedApiKey);
+    //} else {
+    //}
     const storedDBSchema = localStorage.getItem('dbschema');
-    if (storedDBSchema) {
-        setdbschema(storedDBSchema);
-    } else {
-    }
-    if (!storedApiKey || !storedDatabase) {
-        redirect('/firsttimesignin');
-    } 
+    //if (storedDBSchema) {
+    //    setdbschema(storedDBSchema);
+    //} else {
+    //}
+    //if (!storedApiKey || !storedDatabase) {
+    //    redirect('/firsttimesignin');
+    //} 
     
   }, []);
   const BuildTable=(tableName:string, fulltable:Object)=>{
@@ -94,15 +93,6 @@ import { forEachChild } from 'typescript';
         
         }
         }
-  const handleDatabaseNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setDatabase(event.target.value);
-  };
-  const handleConnectionKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setConnectionKey(event.target.value);
-  };
-  const handleOnlineStatusChange= (event: React.ChangeEvent<HTMLInputElement>) => {
-    setOnlineEnabled(event.target.checked);
-  };
     const handleDBSchemaDownload = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     let connectionKey= localStorage.getItem('connectionKey');
@@ -119,11 +109,10 @@ import { forEachChild } from 'typescript';
     return json;
     };
 
-  const handleDatabaseNameSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+ const handleDatabaseNameSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    localStorage.setItem('database', database);
-    localStorage.setItem('connectionKey', connectionKey);
-    localStorage.setItem('online', OnlineEnabled.toString());
+    let connectionKey= localStorage.getItem('connectionKey');
+
 
     let url=`http://localhost:8080/getkey/${database}&apikey=${connectionKey}`;
 
@@ -158,7 +147,26 @@ import { forEachChild } from 'typescript';
     localStorage.setItem('tables', JSON.stringify(tablenameArray));
   };
   }
+  const syncSchemaandRecords = async (event: React.FormEvent<HTMLFormElement>) => {
+    handleDatabaseNameSubmit(event);
+    let connectionKey= localStorage.getItem('storedapikey');
+    const tables:any = localStorage.getItem('tables');
+    if (tables) {   
+        const tableArray = JSON.parse(tables);
+        tableArray.forEach(async (table:any) => {
+            let url=`http://localhost:8080/query/${database}&table=${table}&select=*&where=1=1&apikey=${connectionKey}`
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            let json = await response.json();
+            localStorage.setItem(`${table}_records`, JSON.stringify(json));
+            });
 
+        }
+    }
     
         
    
@@ -178,7 +186,7 @@ import { forEachChild } from 'typescript';
              </Link>
 
 
-             <button onClick={onClickDownloadRecords}>Download Records Already Entered</button>
+             <button onClick={syncSchemaandRecords}>Sync Database</button>
            </div>
          </div>
        </div>
