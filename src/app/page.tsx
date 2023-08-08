@@ -34,7 +34,6 @@ import { forEachChild } from 'typescript';
     if (storedDatabase) {
       setDatabase(storedDatabase);
     } else {
-      // Show the database name input screen
     }
     const storedconnectionKey = localStorage.getItem('connectionKey');
     if (storedconnectionKey) {
