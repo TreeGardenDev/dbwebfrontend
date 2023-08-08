@@ -1,16 +1,17 @@
  'use client'
  import { useState, useEffect } from 'react';
+ import { redirect } from 'next/navigation';
  import Image from 'next/image'
  import Link from 'next/link'
  import '@component/app/globals.css';
-import { forEachChild } from 'typescript';
 
  export default function Home() {
   const [database, setDatabase] = useState('');
   const [connectionKey, setConnectionKey] = useState('');
-  const [storedapikey, setStoredApiKey] = useState('');
-  const [dbschema, setdbschema] = useState('');
-  const [OnlineEnabled, setOnlineEnabled] = useState(true);
+  //const [storedapikey, setStoredApiKey] = useState('');
+  //const [dbschema, setdbschema] = useState('');
+  //const [initialLogin, setInitialLogin] = useState(false);
+  //const [OnlineEnabled, setOnlineEnabled] = useState(true);
     interface ParsedSchema {
       [key: string]: {
         table_name: string;
@@ -42,15 +43,19 @@ import { forEachChild } from 'typescript';
 
     }
     const storedApiKey = localStorage.getItem('storedapikey');
-    if (storedApiKey) {
-      setStoredApiKey(storedApiKey);
-    } else {
-    }
+    //if (storedApiKey) {
+    //  setStoredApiKey(storedApiKey);
+    //} else {
+    //}
     const storedDBSchema = localStorage.getItem('dbschema');
-    if (storedDBSchema) {
-        setdbschema(storedDBSchema);
-    } else {
-    }
+    //if (storedDBSchema) {
+    //    setdbschema(storedDBSchema);
+    //} else {
+    //}
+    //if (!storedApiKey || !storedDatabase) {
+    //    redirect('/firsttimesignin');
+    //} 
+    
   }, []);
   const BuildTable=(tableName:string, fulltable:Object)=>{
         //build table from Interfa  
@@ -88,15 +93,6 @@ import { forEachChild } from 'typescript';
         
         }
         }
-  const handleDatabaseNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setDatabase(event.target.value);
-  };
-  const handleConnectionKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setConnectionKey(event.target.value);
-  };
-  const handleOnlineStatusChange= (event: React.ChangeEvent<HTMLInputElement>) => {
-    setOnlineEnabled(event.target.checked);
-  };
     const handleDBSchemaDownload = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     let connectionKey= localStorage.getItem('connectionKey');
@@ -113,11 +109,10 @@ import { forEachChild } from 'typescript';
     return json;
     };
 
-  const handleDatabaseNameSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+ const handleDatabaseNameSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    localStorage.setItem('database', database);
-    localStorage.setItem('connectionKey', connectionKey);
-    localStorage.setItem('online', OnlineEnabled.toString());
+    let connectionKey= localStorage.getItem('connectionKey');
+
 
     let url=`http://localhost:8080/getkey/${database}&apikey=${connectionKey}`;
 
@@ -152,28 +147,34 @@ import { forEachChild } from 'typescript';
     localStorage.setItem('tables', JSON.stringify(tablenameArray));
   };
   }
+  const syncSchemaandRecords = async (event: React.FormEvent<HTMLFormElement>) => {
+    handleDatabaseNameSubmit(event);
+    let connectionKey= localStorage.getItem('storedapikey');
+    const tables:any = localStorage.getItem('tables');
+    if (tables) {   
+        const tableArray = JSON.parse(tables);
+        tableArray.forEach(async (table:any) => {
+            let url=`http://localhost:8080/query/${database}&table=${table}&select=*&where=1=1&apikey=${connectionKey}`
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            let json = await response.json();
+            localStorage.setItem(`${table}_records`, JSON.stringify(json));
+            });
 
+        }
+    }
+    
+        
    
    return (
      <main className="flex min-h-screen flex-col items-center justify-between p-24">
        <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
          <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
            <div className="flex flex-col items-center justify-center gap-8">
-            <form onSubmit={handleDatabaseNameSubmit}>
-              <label>
-                Database Name:
-                <input type="text" value={database} onChange={handleDatabaseNameChange} />
-              </label>
-              <label>
-                Connection Key:
-                <input type="text" value={connectionKey} onChange={handleConnectionKeyChange} />
-              </label>
-              <label>
-                Online Enabled
-                <input type="checkbox" onChange={handleOnlineStatusChange} defaultChecked={true} />
-                </label>
-              <button type="submit">Save</button>
-            </form>
             <Link href="/add-table" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
               Add a table
               </Link>
@@ -185,7 +186,7 @@ import { forEachChild } from 'typescript';
              </Link>
 
 
-             <button onClick={onClickDownloadRecords}>Download Records Already Entered</button>
+             <button onClick={syncSchemaandRecords}>Sync Database</button>
            </div>
          </div>
        </div>
