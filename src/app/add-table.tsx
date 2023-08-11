@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react';
 import '@component/app/globals.css';
+import Link from 'next/link';
 //import { count } from 'console';
 import React from "react";
 
@@ -10,12 +11,69 @@ export default function AddTable() {
     dataType: string;
   }
 
+    interface ParsedSchema {
+      [key: string]: {
+        table_name: string;
+        columns: Array<string>;
+        constraint_column:string;
+        constraints:string;
+        table_schema:string;
+        types:Array<string>;
+      };
+    }
   const [useGPS, setUseGPS] = useState(false);
   const [tableName, setTableName] = useState('');
   const [columns, setColumns] = useState<Column[]>([{ name: '', dataType: '' }]);
   const [errorMessage, setErrorMessage] = useState('');
 
+    async function handleDBSchemaDownload (event) {
+    event.preventDefault();
+    console.log("download schema");
+    let database=localStorage.getItem('database');
+
+    let storedApiKey = localStorage.getItem('connectionKey');
+
+
+        
+    const url=`http://localhost:8080/querydatabase/${database}&expand=true&apikey=${storedApiKey}`;
+
+    
+    const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'text/json',
+            }
+    });
+
+        const parsedSchema: ParsedSchema = await response.json();
+        console.log(parsedSchema);
+        let newdbshema = parsedSchema;
+        console.log(newdbshema);
+        localStorage.setItem('dbschema', JSON.stringify(parsedSchema));
+        console.log(localStorage.getItem('dbcshema'));
+
+        if (parsedSchema){
+        let tablenameArray:Array<string>=[];
+        Object.keys(parsedSchema).forEach((table) => {
+          const tabledet = parsedSchema[table];
+
+          const tablename=tabledet.table_name;
+          console.log(`Table Name: ${tablename}`);
+          tablenameArray.push(tablename);
+          localStorage.setItem(`${tablename}_columns`, JSON.stringify(tabledet.columns));
+          localStorage.setItem(`${tablename}_types`, JSON.stringify(tabledet.types));
+
+        });
+        localStorage.setItem('tables', JSON.stringify(tablenameArray));
+            //window.location.href = '/';
+            return newdbshema;
+
+        }
+            
+        };
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+
     
     event.preventDefault();
     if (tableName === '' || columns.some((column) => column.name === '' || column.dataType === '')) {
@@ -53,8 +111,8 @@ export default function AddTable() {
 
     const url = `http://localhost:8080/createtable/${database}&table=${tableName}&gps=${gpsval}&apikey=${storedApiKey}`;
     console.log(url); 
+
   // Send the HTTP request with the JSON body
-  try {
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -63,14 +121,12 @@ export default function AddTable() {
       body: json,
     });
 
-    if (response.ok) {
-      console.log('Table created successfully!');
-    } else {
-      console.error('Failed to create table:', response.statusText);
-    }
-  } catch (error) {
-    console.error('Failed to create table:', error);
-  }
+    await handleDBSchemaDownload(event);
+    console.log(response);
+     
+
+        
+
 };
 
   const handleTableNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -149,6 +205,7 @@ export default function AddTable() {
         <button type="button" onClick={handleAddRow}>Add Row</button>
         <button type="submit">Create Table</button>
       </form>
+            <Link href="/" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" />
     </div>
   );
 }
