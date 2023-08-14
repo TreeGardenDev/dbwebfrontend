@@ -16,7 +16,9 @@ export default function InsertRecords() {
       const tablesString = localStorage.getItem('tables');
 
       if (tablesString) {
-        const tables = JSON.parse(tablesString);
+        let tables = JSON.parse(tablesString);
+        //do not show tables that end with _GPS
+        tables = tables.filter((table) => !table.endsWith('_GPS'));
         setTables(tables);
       }
     };
@@ -44,7 +46,7 @@ const fetchTableSchema = async () => {
     //    recordarray.push(records[i]);
     //    }
     Object.keys(records).forEach((index: any) => {
-        console.log(records[index]);
+        //console.log(records[index]);
         recordarray.push(records[index]);
         });
 
@@ -57,12 +59,12 @@ const fetchTableSchema = async () => {
     //if (!Array.isArray(records)) {
     //  records = [];
     //}
-    console.log(records);
+    //console.log(records);
 
     const tableSchema = {
       columns: columns.map((name, index) => ({
         name,
-        type: types[index],
+        type: types,
       })),
     };
 
@@ -81,7 +83,9 @@ const fetchTableSchema = async () => {
   };
 
   const handleAddRecord = () => {
+
     setRecords([...records, {}]);
+
   };
 
   const handleDeleteRecord = (index: number) => {
@@ -89,8 +93,6 @@ const fetchTableSchema = async () => {
   };
   const handleAddAttachment=(index:number)=>{
     console.log("add attachment");
-    //go to upload.jsx
-    //setAttachments([...attachments, {}]);
 
     
 
@@ -108,25 +110,19 @@ const fetchTableSchema = async () => {
     );
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const handleSubmit = async () => {
     
     let apiKey = localStorage.getItem('storedapikey');
     let database = localStorage.getItem('database');
-    const formData = new FormData();
-    const filteredFormData = Array.from(formData.entries()).filter(([key, value]) => {
-    // Assuming the automatically rendered data has specific properties or values you can check against
-    // If it matches the condition, exclude it from the filtered form data
-    return !(key.includes("rendered") || value === "auto");
-  });
-  console.log(filteredFormData);
-    const postData = Object.fromEntries(filteredFormData);
-    const records = postData.records.map((record) => {
-        const parsedRecord = JSON.parse(record);
-        return parsedRecord;
-        });
-
-
+    let postdata = [];
+    //console.log(records);
+    for (let i = 0; i < records.length; i++) {
+     // console.log(records[i]);
+     // console.log(Object.keys(records[i]));
+        if (!(records[i]).hasOwnProperty('INTERNAL_PRIMARY_KEY')){
+            postdata.push(records[i]);
+        }
+      }
 
 
 
@@ -136,7 +132,7 @@ const fetchTableSchema = async () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(records)
+        body: JSON.stringify(postdata)
       });
       if (response.ok) {
         console.log('Records inserted successfully');
@@ -169,7 +165,7 @@ const fetchTableSchema = async () => {
         {tableSchema && (
           <table>
             <thead>
-              <tr>
+              <tr >
                 {tableSchema.columns.map((column:any) => (
                   <th key={column.name}>{column.name}</th>
                 ))}
@@ -188,6 +184,7 @@ const fetchTableSchema = async () => {
                         type="text"
                         value={record[column.name] || ''}
                         onChange={(event) => handleRecordChange(index, column.name, event.target.value)}
+                        disabled={column.name === 'INTERNAL_PRIMARY_KEY'}
                       />
                     </td>
                         
