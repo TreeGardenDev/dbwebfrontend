@@ -154,7 +154,7 @@
     if (tables) {   
         const tableArray = JSON.parse(tables);
         tableArray.forEach(async (table:any) => {
-            let url=`http://localhost:8080/query/${database}&table=${table}&select=*&where=1=1&apikey=${connectionKey}`
+            let url=`http://localhost:8080/query/${database}&table=${table}&select=*&where=1=1&expand=true&apikey=${connectionKey}`
             const response = await fetch(url, {
                 method: 'GET',
                 headers: {

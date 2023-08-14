@@ -8,6 +8,7 @@ export default function InsertRecords() {
   const [tableSchema, setTableSchema] = useState<TableSchema | null>(null);
   const [records, setRecords] = useState<any[]>([]);
   const [tables, setTables] = useState<string[]>([]);
+  const [attachments, setAttachments] = useState<string[]>([]);
 
   useEffect(() => {
     // Fetch the tables from local storage
@@ -29,7 +30,7 @@ const fetchTableSchema = async () => {
   const columnsString = localStorage.getItem(`${table}_columns`);
   const typesString = localStorage.getItem(`${table}_types`);
   const recordsString = localStorage.getItem(`${table}_records`);
-  console.log(recordsString);
+  //console.log(recordsString);
   const database = localStorage.getItem('database');
   const apiKey = localStorage.getItem('storedapikey');
 
@@ -38,9 +39,20 @@ const fetchTableSchema = async () => {
     const types = JSON.parse(typesString);
     let recordarray = [];
     let records = JSON.parse(recordsString);
-    for (let i = 0; i < records.length; i++) {
-      recordarray.push(records[i]);
-    }
+    //turn into array
+    //for (let i = 0; i < records.length; i++) {
+    //    recordarray.push(records[i]);
+    //    }
+    Object.keys(records).forEach((index: any) => {
+        console.log(records[index]);
+        recordarray.push(records[index]);
+        });
+
+        
+        
+    //for (let i = 0; i < records.length; i++) {
+    //  recordarray.push(records[i]);
+    //}
 
     //if (!Array.isArray(records)) {
     //  records = [];
@@ -48,9 +60,9 @@ const fetchTableSchema = async () => {
     console.log(records);
 
     const tableSchema = {
-      columns: columns.slice(1).map((name: string, index: number) => ({
+      columns: columns.map((name, index) => ({
         name,
-        type: types[index+1],
+        type: types[index],
       })),
     };
 
@@ -75,6 +87,14 @@ const fetchTableSchema = async () => {
   const handleDeleteRecord = (index: number) => {
     setRecords(records.filter((_, i) => i !== index));
   };
+  const handleAddAttachment=(index:number)=>{
+    console.log("add attachment");
+    //go to upload.jsx
+    //setAttachments([...attachments, {}]);
+
+    
+
+    };
 
   const handleRecordChange = (index: number, column: string, value: any) => {
     setRecords((prevRecords) =>
@@ -88,16 +108,35 @@ const fetchTableSchema = async () => {
     );
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    
     let apiKey = localStorage.getItem('storedapikey');
     let database = localStorage.getItem('database');
+    const formData = new FormData();
+    const filteredFormData = Array.from(formData.entries()).filter(([key, value]) => {
+    // Assuming the automatically rendered data has specific properties or values you can check against
+    // If it matches the condition, exclude it from the filtered form data
+    return !(key.includes("rendered") || value === "auto");
+  });
+  console.log(filteredFormData);
+    const postData = Object.fromEntries(filteredFormData);
+    const records = postData.records.map((record) => {
+        const parsedRecord = JSON.parse(record);
+        return parsedRecord;
+        });
+
+
+
+
+
     try {
       const response = await fetch(`http://localhost:8080/insert/${database}&table=${table}&apikey=${apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(records),
+        body: JSON.stringify(records)
       });
       if (response.ok) {
         console.log('Records inserted successfully');
@@ -140,17 +179,25 @@ const fetchTableSchema = async () => {
 
               {
               records.map((record, index) => (
+              
                 <tr key={index}>
                   {tableSchema.columns.map((column:any) => (
-                    <td key={column.name}>
+                   
+                    <td key={column.index}>
                       <input
                         type="text"
                         value={record[column.name] || ''}
                         onChange={(event) => handleRecordChange(index, column.name, event.target.value)}
                       />
                     </td>
+                        
+
+                        
                   ))}
                   <td>
+                    <Link href="/upload" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                      Upload
+                      </Link>
                     <button type="button" onClick={() => handleDeleteRecord(index)}>
                       Delete
                     </button>
@@ -164,7 +211,7 @@ const fetchTableSchema = async () => {
         <button type="button" onClick={handleAddRecord}>
           Add Record
         </button>
-        <button type="button" onClick={handleSubmit}>
+        <button type="button" onClick={handleSubmit}  >
           Submit
         </button>
       </form>
