@@ -16,7 +16,9 @@ export default function InsertRecords() {
       const tablesString = localStorage.getItem('tables');
 
       if (tablesString) {
-        const tables = JSON.parse(tablesString);
+        let tables = JSON.parse(tablesString);
+        //do not show tables that end with _GPS
+        tables = tables.filter((table) => !table.endsWith('_GPS'));
         setTables(tables);
       }
     };
@@ -44,7 +46,7 @@ const fetchTableSchema = async () => {
     //    recordarray.push(records[i]);
     //    }
     Object.keys(records).forEach((index: any) => {
-        console.log(records[index]);
+        //console.log(records[index]);
         recordarray.push(records[index]);
         });
 
@@ -57,7 +59,7 @@ const fetchTableSchema = async () => {
     //if (!Array.isArray(records)) {
     //  records = [];
     //}
-    console.log(records);
+    //console.log(records);
 
     const tableSchema = {
       columns: columns.map((name, index) => ({
@@ -91,8 +93,6 @@ const fetchTableSchema = async () => {
   };
   const handleAddAttachment=(index:number)=>{
     console.log("add attachment");
-    //go to upload.jsx
-    //setAttachments([...attachments, {}]);
 
     
 
