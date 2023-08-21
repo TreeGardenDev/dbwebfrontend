@@ -1,14 +1,28 @@
- 'use client'
- import { useState, useEffect } from 'react';
+'use client'
+import csvtojson from 'csvtojson';
+ import { useState, useEffect, SetStateAction } from 'react';
  import Image from 'next/image'
  import Link from 'next/link'
  import '@component/app/globals.css';
-export default function InsertRecords() {
+export default function BulkUpload() {
   const [table, setTable] = useState('');
+  interface TableSchema {
+    columns: {
+      name: string;
+      type: string;
+    }[];
+  }
+
+  interface TableSchema {
+    columns: {
+      name: string;
+      type: string;
+    }[];
+  }
+
   const [tableSchema, setTableSchema] = useState<TableSchema | null>(null);
   const [records, setRecords] = useState<any[]>([]);
   const [tables, setTables] = useState<string[]>([]);
-  const [attachments, setAttachments] = useState<string[]>([]);
 
   useEffect(() => {
     // Fetch the tables from local storage
@@ -18,7 +32,7 @@ export default function InsertRecords() {
       if (tablesString) {
         let tables = JSON.parse(tablesString);
         //do not show tables that end with _GPS
-        tables = tables.filter((table) => !table.endsWith('_GPS'));
+        tables = tables.filter((table: string) => !table.endsWith('_GPS'));
         setTables(tables);
       }
     };
@@ -40,7 +54,7 @@ const fetchTableSchema = async () => {
   if (columnsString && typesString && recordsString) {
     const columns = JSON.parse(columnsString);
     const types = JSON.parse(typesString);
-    let recordarray = [];
+    let recordarray: SetStateAction<any[]> = [];
     let records = JSON.parse(recordsString);
     //turn into array
     //for (let i = 0; i < records.length; i++) {
@@ -63,7 +77,7 @@ const fetchTableSchema = async () => {
     //console.log(records);
 
     const tableSchema = {
-      columns: columns.map((name, index) => ({
+      columns: columns.map((name: any, index: any) => ({
         name,
         type: types,
       })),
@@ -83,35 +97,34 @@ const fetchTableSchema = async () => {
     setTable(event.target.value);
     const uploadurl = `/upload/${event.target.value}`;
   };
+  const attachCSV = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    file?.text().then((csv) => {
+            //strip out the header row
+              const parsedRows = parseCSV(csv);
+              console.log(parsedRows);
+                
+        });
+        
+    }
+
+    const parseCSV = async (csv: string) => {
+      const rows = await csvtojson().fromString(csv);
+      const columnNames = JSON.parse(localStorage.getItem('columnNames') || '[]');
+      const parsedRows = rows.map((row) => {
+        const parsedRow: { [key: string]: string } = {};
+        columnNames.forEach((columnName) => {
+          parsedRow[columnName] = row[columnName];
+        });
+        return parsedRow;
+      });
+      return parsedRows; 
+    }
 
 
-  const handleAddRecord = () => {
 
-    setRecords([...records, {}]);
 
-  };
 
-  const handleDeleteRecord = (index: number) => {
-    setRecords(records.filter((_, i) => i !== index));
-  };
-  const handleAddAttachment=(index:number)=>{
-    console.log("add attachment");
-
-    
-
-    };
-
-  const handleRecordChange = (index: number, column: string, value: any) => {
-    setRecords((prevRecords) =>
-      prevRecords.map((record, i) => {
-        if (i === index) {
-          return { ...record, [column]: value };
-        } else {
-          return record;
-        }
-      })
-    );
-  };
 
   const handleSubmit = async () => {
     
@@ -163,58 +176,16 @@ const fetchTableSchema = async () => {
             ))}
           </select>
         </label>
+        <input type="file" name="file" onChange={attachCSV} />
         <br />
         <br />
-        {tableSchema && (
-          <table>
-            <thead>
-              <tr >
-                {tableSchema.columns.map((column:any) => (
-                  <th key={column.name}>{column.name}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-
-              {
-              records.map((record, index) => (
-              
-                <tr key={index}>
-                  {tableSchema.columns.map((column:any) => (
-                   
-                    <td key={column.index}>
-                      <input
-                        type="text"
-                        value={record[column.name] || ''}
-                        onChange={(event) => handleRecordChange(index, column.name, event.target.value)}
-                        disabled={column.name === 'INTERNAL_PRIMARY_KEY'}
-                      />
-                    </td>
-                        
-
-                        
-                  ))}
-                  <td>
-                    <Link href="/upload" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                      Upload
-                      </Link>
-                    <button type="button" onClick={() => handleDeleteRecord(index)}>
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
         <br />
-        <button type="button" onClick={handleAddRecord}>
-          Add Record
-        </button>
-        <button type="button" onClick={handleSubmit}  >
+        <button type="button" onClick={handleSubmit}>
           Submit
         </button>
+        
       </form>
+      <br/>
       <Link href="/" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
       return to home
     </Link>
