@@ -184,8 +184,9 @@
              <Link href="/view-edit-data" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                View and Edit Current Inspection Data
              </Link>
-
-
+             <Link href="bulkupload" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Bulk Upload Data
+            </Link>
              <button onClick={syncSchemaandRecords}>Sync Database</button>
            </div>
          </div>

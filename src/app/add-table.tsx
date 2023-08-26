@@ -186,8 +186,8 @@ export default function AddTable() {
                     <option value=""></option>
                     <option value="DOUBLE">Decimal</option>
                     <option value="INT">Integer</option>
-                    <option value="VARCHAR(255)">String</option>
-                    <option value="TEXT">Text</option>
+                    <option value="VARCHAR(255)">255 Character Limit Text</option>
+                    <option value="TEXT">Long Text</option>
                     <option value="DATE">Date</option>
                     <option value="DATETIME">Date/Time</option>
                     <option value="BOOLEAN">True/False</option>
@@ -205,7 +205,9 @@ export default function AddTable() {
         <button type="button" onClick={handleAddRow}>Add Row</button>
         <button type="submit">Create Table</button>
       </form>
-            <Link href="/" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" />
+      <Link href="/" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+      return to home
+    </Link>
     </div>
   );
 }
