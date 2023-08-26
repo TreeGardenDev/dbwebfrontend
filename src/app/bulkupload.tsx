@@ -1,8 +1,8 @@
 'use client'
 import csvtojson from 'csvtojson';
  import { useState, useEffect, SetStateAction } from 'react';
- import Image from 'next/image'
- import Link from 'next/link'
+ import Image from 'next/image';
+ import Link from 'next/link';
  import '@component/app/globals.css';
 export default function BulkUpload() {
   const [table, setTable] = useState('');
@@ -23,6 +23,7 @@ export default function BulkUpload() {
   const [tableSchema, setTableSchema] = useState<TableSchema | null>(null);
   const [records, setRecords] = useState<any[]>([]);
   const [tables, setTables] = useState<string[]>([]);
+  const [parsedData, setParsedData] = useState<{ [key: string]: string }[]>([]);
 
   useEffect(() => {
     // Fetch the tables from local storage
@@ -50,6 +51,7 @@ const fetchTableSchema = async () => {
   const database = localStorage.getItem('database');
   const apiKey = localStorage.getItem('storedapikey');
   const uploadurl = `/upload/${table}`;
+
 
   if (columnsString && typesString && recordsString) {
     const columns = JSON.parse(columnsString);
@@ -103,6 +105,7 @@ const fetchTableSchema = async () => {
             //strip out the header row
               const parsedRows = parseCSV(csv);
               console.log(parsedRows);
+              setParsedData(parsedRows);
                 
         });
         
@@ -110,14 +113,21 @@ const fetchTableSchema = async () => {
 
     const parseCSV = async (csv: string) => {
       const rows = await csvtojson().fromString(csv);
-      const columnNames = JSON.parse(localStorage.getItem('columnNames') || '[]');
+      console.log(rows);
+      let columnNames= localStorage.getItem(`${table}_columns`);
+      //columnNames= JSON.parse(columnNames);
+      columnNames = JSON.parse(columnNames).filter((columnName: string) => columnName !== 'INTERNAL_PRIMARY_KEY');
+      console.log(columnNames);
+      //const columnNames = JSON.parse(localStorage.getItem('columnNames') || '[]');
       const parsedRows = rows.map((row) => {
         const parsedRow: { [key: string]: string } = {};
+      //  console.log(columnNames);
         columnNames.forEach((columnName) => {
           parsedRow[columnName] = row[columnName];
         });
         return parsedRow;
-      });
+     });
+     console.log(parsedRows);
       return parsedRows; 
     }
 
@@ -131,14 +141,9 @@ const fetchTableSchema = async () => {
     let apiKey = localStorage.getItem('storedapikey');
     let database = localStorage.getItem('database');
     let postdata = [];
-    //console.log(records);
-    for (let i = 0; i < records.length; i++) {
-     // console.log(records[i]);
-     // console.log(Object.keys(records[i]));
-        if (!(records[i]).hasOwnProperty('INTERNAL_PRIMARY_KEY')){
-            postdata.push(records[i]);
-        }
-      }
+    console.log(parsedData);
+    const records = await parsedData;
+    console.log(records);
 
 
 
@@ -148,7 +153,7 @@ const fetchTableSchema = async () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(postdata)
+        body: JSON.stringify(records)
       });
       if (response.ok) {
         console.log('Records inserted successfully');

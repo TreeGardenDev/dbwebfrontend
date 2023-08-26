@@ -195,9 +195,6 @@ const fetchTableSchema = async () => {
                         
                   ))}
                   <td>
-                    <Link href="/upload" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                      Upload
-                      </Link>
                     <button type="button" onClick={() => handleDeleteRecord(index)}>
                       Delete
                     </button>
