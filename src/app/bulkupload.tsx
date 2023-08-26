@@ -114,25 +114,22 @@ const fetchTableSchema = async () => {
     const parseCSV = async (csv: string) => {
       const rows = await csvtojson().fromString(csv);
       console.log(rows);
-      let columnNames= localStorage.getItem(`${table}_columns`);
+      let columnNames:any= localStorage.getItem(`${table}_columns`);
       //columnNames= JSON.parse(columnNames);
       columnNames = JSON.parse(columnNames).filter((columnName: string) => columnName !== 'INTERNAL_PRIMARY_KEY');
-      console.log(columnNames);
+      //console.log(columnNames);
       //const columnNames = JSON.parse(localStorage.getItem('columnNames') || '[]');
       const parsedRows = rows.map((row) => {
         const parsedRow: { [key: string]: string } = {};
       //  console.log(columnNames);
-        columnNames.forEach((columnName) => {
+        columnNames.forEach((columnName:any) => {
           parsedRow[columnName] = row[columnName];
         });
         return parsedRow;
      });
      console.log(parsedRows);
-      return parsedRows; 
+     return parsedRows; 
     }
-
-
-
 
 
 
@@ -140,11 +137,7 @@ const fetchTableSchema = async () => {
     
     let apiKey = localStorage.getItem('storedapikey');
     let database = localStorage.getItem('database');
-    let postdata = [];
-    console.log(parsedData);
     const records = await parsedData;
-    console.log(records);
-
 
 
     try {
