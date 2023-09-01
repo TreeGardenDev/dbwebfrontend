@@ -3,7 +3,7 @@ import csvtojson from 'csvtojson';
  import { useState, useEffect, SetStateAction } from 'react';
  import Image from 'next/image';
  import Link from 'next/link';
- import '@component/app/globals.css';
+ //import '@component/app/globals.css';
 export default function BulkUpload() {
   const [table, setTable] = useState('');
   interface TableSchema {
