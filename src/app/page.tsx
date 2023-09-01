@@ -3,7 +3,7 @@
  import { redirect } from 'next/navigation';
  import Image from 'next/image'
  import Link from 'next/link'
- import '@component/app/globals.css';
+// import '@component/app/globals.css';
 
  export default function Home() {
   const [database, setDatabase] = useState('');
@@ -52,9 +52,9 @@
     //    setdbschema(storedDBSchema);
     //} else {
     //}
-    //if (!storedApiKey || !storedDatabase) {
-    //    redirect('/firsttimesignin');
-    //} 
+    if (!storedApiKey || !storedDatabase) {
+        redirect('/firsttimesignin');
+    } 
     
   }, []);
   const BuildTable=(tableName:string, fulltable:Object)=>{

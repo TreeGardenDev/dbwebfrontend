@@ -1,9 +1,8 @@
 'use client'
 import { useState } from 'react';
-import '@component/app/globals.css';
+//import '@component/app/globals.css';
 import Link from 'next/link';
 //import { count } from 'console';
-import React from "react";
 
 export default function AddTable() {
   interface Column {

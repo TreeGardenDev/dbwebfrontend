@@ -2,13 +2,30 @@
  import { useState, useEffect } from 'react';
  import Image from 'next/image'
  import Link from 'next/link'
- import '@component/app/globals.css';
+ //import '@component/app/globals.css';
+import React from "react";
+import Popup from 'reactjs-popup';
+import './style.css';
+import { Html } from 'next/document';
 export default function InsertRecords() {
   const [table, setTable] = useState('');
   const [tableSchema, setTableSchema] = useState<TableSchema | null>(null);
   const [records, setRecords] = useState<any[]>([]);
   const [tables, setTables] = useState<string[]>([]);
   const [attachments, setAttachments] = useState<string[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+ const [recordSelected, setRecordSelected] = useState<any>(null);
+ const [selectedRecord, setSelectedRecord] = useState<{ [key: string]: string } | null>(null);
+
+ 
+  const togglePopup = () => {
+    console.log(recordSelected);
+    setIsOpen(!isOpen);
+  }
+  
+
+
+
 
   useEffect(() => {
     // Fetch the tables from local storage
@@ -28,6 +45,7 @@ export default function InsertRecords() {
 
   useEffect(() => {
     // Fetch the table schema from local storage
+
 const fetchTableSchema = async () => {
   const columnsString = localStorage.getItem(`${table}_columns`);
   const typesString = localStorage.getItem(`${table}_types`);
@@ -78,6 +96,21 @@ const fetchTableSchema = async () => {
     }
   }, [table]);
 
+const setRecord = (record: string) => {
+    return setRecordSelected(record);
+    };
+const Popup = props=> {
+    const tablename:string = table;
+  return (
+    <div className="popup-box">
+      <div className="box">
+        <label value={tablename}>Table Name: {tablename}</label>
+        <span className="close-icon" onClick={props.handleClose}>x</span>
+        {props.content}
+      </div>
+    </div>
+  );
+};
 
   const handleTableChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setTable(event.target.value);
@@ -102,9 +135,11 @@ const fetchTableSchema = async () => {
     };
 
   const handleRecordChange = (index: number, column: string, value: any) => {
+    console.log("Record Change");
     setRecords((prevRecords) =>
       prevRecords.map((record, i) => {
         if (i === index) {
+          setRecordSelected(record);
           return { ...record, [column]: value };
         } else {
           return record;
@@ -149,6 +184,7 @@ const fetchTableSchema = async () => {
 
   return (
     <div>
+   
       <h1>Insert Records</h1>
       <form>
         <br />
@@ -190,15 +226,32 @@ const fetchTableSchema = async () => {
                         disabled={column.name === 'INTERNAL_PRIMARY_KEY'}
                       />
                     </td>
-                        
-
-                        
                   ))}
                   <td>
                     <button type="button" onClick={() => handleDeleteRecord(index)}>
                       Delete
                     </button>
                   </td>
+                    <input
+                    type="button"
+                    value="Add Attachment"
+                    onClick={togglePopup}
+                  />
+                  {isOpen && <Popup
+                    content={<>
+                      <br/>
+                      <b>Selected Record:</b>
+                      <br />
+                        <p>{JSON.stringify(recordSelected)}</p>
+                        <form onSubmit={handleAddAttachment}>
+                        <input type="file" name="file" onChange={handleAddAttachment} />
+                        <input type="submit" value="Submit" />
+                        </form>
+
+                      <button>Test button</button>
+                    </>}
+                    handleClose={togglePopup}
+                  />}
                 </tr>
               ))}
             </tbody>
