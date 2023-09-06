@@ -7,24 +7,24 @@ import React from "react";
 import Popup from 'reactjs-popup';
 import './style.css';
 import { Html } from 'next/document';
-export default function InsertRecords() {
+export default function viewupdate() {
     const [table, setTable] = useState('');
     const [tableSchema, setTableSchema] = useState<TableSchema | null>(null);
-    const [records, setRecords] = useState<any[]>([]);
+    //const [records, setRecords] = useState<any[]>([]);
+    const [records, setRecords] = useState<{ [key: string]: string; isDirty: boolean }[]>([]);
     const [tables, setTables] = useState<string[]>([]);
     const [attachments, setAttachments] = useState<string[]>([]);
     const [isOpen, setIsOpen] = useState(false);
-    const [recordSelected, setRecordSelected] = useState<any>(null);
+    //const [recordSelected, setRecordSelected] = useState<any>(null);
+    const [recordSelected, setRecordSelected] = useState<{ [key: string]: string } | null>(null);
     const [selectedRecord, setSelectedRecord] = useState<{ [key: string]: string } | null>(null);
+    const [wasupdated, setWasUpdated] = useState(false);
 
 
     const togglePopup = () => {
         console.log(recordSelected);
         setIsOpen(!isOpen);
     }
-
-
-
 
 
     useEffect(() => {
@@ -35,7 +35,8 @@ export default function InsertRecords() {
             if (tablesString) {
                 let tables = JSON.parse(tablesString);
                 //do not show tables that end with _GPS
-                tables = tables.filter((table) => !table.endsWith('_GPS'));
+
+                tables = tables.filter((table: any) => !table.endsWith('_GPS'));
                 setTables(tables);
             }
         };
@@ -58,19 +59,17 @@ export default function InsertRecords() {
             if (columnsString && typesString && recordsString) {
                 const columns = JSON.parse(columnsString);
                 const types = JSON.parse(typesString);
+                let recordarray: any = [];
                 let records = JSON.parse(recordsString);
-                let recordarray: [String, Boolean] = [];
                 //turn into array
                 //for (let i = 0; i < records.length; i++) {
                 //    recordarray.push(records[i]);
                 //    }
-                //const recordarray=records.map((row)=> ({ ...row, isDirty: false }));
                 Object.keys(records).forEach((index: any) => {
                     //console.log(records[index]);
-                    recordarray.push(records[index], false);
+                    recordarray.push(records[index], { isDirty: false });
                 });
 
-                console.log(recordarray);
 
 
                 //for (let i = 0; i < records.length; i++) {
@@ -83,7 +82,7 @@ export default function InsertRecords() {
                 //console.log(records);
 
                 const tableSchema = {
-                    columns: columns.map((name, index) => ({
+                    columns: columns.map((name: any, index) => ({
                         name,
                         type: types,
                     })),
@@ -135,19 +134,31 @@ export default function InsertRecords() {
 
 
     };
+    const handleUpdateRecord = (index: number) => {
+        console.log("update record");
+        setWasUpdated(true);
+    };
+
+
 
     const handleRecordChange = (index: number, column: string, value: any) => {
+        const newRecords: any = [...records];
+        newRecords[index][column] = value;
+        newRecords.isDirty = true;
+
         console.log("Record Change");
-        setRecords((prevRecords) =>
-            prevRecords.map((record, i) => {
-                if (i === index) {
-                    setRecordSelected(record);
-                    return { ...record, [column]: value };
-                } else {
-                    return record;
-                }
-            })
-        );
+        setRecords(newRecords);
+        setSelectedRecord(newRecords[index]);
+        //setRecords((prevRecords) =>
+        //    prevRecords.map((record, i) => {
+        //        if (i === index) {
+        //            setRecordSelected(record);
+        //            return { ...record, [column]: value };
+        //        } else {
+        //            return record;
+        //        }
+        //    })
+        //);
     };
 
     const handleSubmit = async () => {
@@ -156,18 +167,19 @@ export default function InsertRecords() {
         let database = localStorage.getItem('database');
         let postdata = [];
         //console.log(records);
-        for (let i = 0; i < records.length; i++) {
+        const updatedRecords = records.filter((record) => record.isDirty);
+        for (let i = 0; i < updatedRecords.length; i++) {
             // console.log(records[i]);
             // console.log(Object.keys(records[i]));
-            if (!(records[i]).hasOwnProperty('INTERNAL_PRIMARY_KEY')) {
-                postdata.push(records[i]);
-            }
+            //if (!(records[i]).hasOwnProperty('INTERNAL_PRIMARY_KEY')) {
+            postdata.push(updatedRecords[i]);
+            //}
         }
 
 
 
         try {
-            const response = await fetch(`http://localhost:6969/insert/${database}&table=${table}&apikey=${apiKey}`, {
+            const response = await fetch(`http://localhost:6969/insert/${database}&table=${table}&apikey=${apiKey}`, {          
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -187,7 +199,7 @@ export default function InsertRecords() {
     return (
         <div>
 
-            <h1>Insert Records</h1>
+            <h1>View and Edit Records</h1>
             <form>
                 <br />
                 <label>
@@ -254,7 +266,10 @@ export default function InsertRecords() {
                                             </>}
                                             handleClose={togglePopup}
                                         />}
+
+
                                     </tr>
+
                                 ))}
                         </tbody>
                     </table>
